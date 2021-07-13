@@ -1,9 +1,7 @@
-import itertools
 import collections
 
 from pycldf import Sources
 from clldutils.misc import nfilter
-from clldutils.color import qualitative_colors
 from clldutils.misc import slug
 from clld.cliutil import Data, bibtex2source
 from clld.db.meta import DBSession
@@ -11,7 +9,6 @@ from clld.db.models import common
 from clld.lib import bibtex
 from nameparser import HumanName
 
-from clld_glottologfamily_plugin.util import load_families
 from clld_cognacy_plugin.models import Cognate
 
 import acd
@@ -19,9 +16,6 @@ from acd import models
 
 
 def main(args):
-
-    assert args.glottolog, 'The --glottolog option is required!'
-
     data = Data()
     ds = data.add(
         common.Dataset,
@@ -51,6 +45,9 @@ def main(args):
             contributor=common.Contributor(id=slug(HumanName(name).last), name=name)
         )
 
+    #
+    # include (the 9) proto-languages and language groups
+    #
     for lang in args.cldf.iter_rows('LanguageTable', 'id', 'glottocode', 'name', 'latitude', 'longitude'):
         data.add(
             models.Variety,
@@ -61,6 +58,7 @@ def main(args):
             longitude=lang['longitude'],
             glottocode=lang['glottocode'],
             group=lang['Group'],
+            is_proto=lang['name'].startswith('Proto'),
         )
 
     for rec in bibtex.Database.from_file(args.cldf.bibpath, lowercase=True):
@@ -110,16 +108,21 @@ def main(args):
             comment=cs['Comment'],
         )
 
-    for cs in args.cldf['reconstructions.csv']:
+    for cs in args.cldf['protoforms.csv']:
+        form = data['Value'][cs['Form_ID']]
         data.add(
             acd.models.Reconstruction,
             cs['ID'],
             id=cs['ID'],
-            name=cs['Form'],
-            description=cs['Gloss'],
+            name=form.name,
+            description=form.valueset.parameter.name.split('[')[0].strip(),
             etymon=data['Reconstruction'][cs['Cognateset_ID']],
             proto_language=cs['Proto_Language'],
+            language=form.valueset.language,
+            form=form,
             comment=cs['Comment'],
+            subset=int(cs['Subset']) if cs['Subset'] is not None else None,
+            implicit=cs['Inferred'],
         )
 
     for cog in args.cldf.iter_rows('CognateTable', 'id', 'formReference', 'cognatesetReference'):
@@ -142,14 +145,6 @@ def main(args):
             source=data['Source'][sid],
             description='; '.join(nfilter(pages))
         ))
-    load_families(
-        Data(),
-        [(l.glottocode, l) for l in data['Variety'].values()],
-        glottolog_repos=args.glottolog,
-        isolates_icon='tcccccc',
-        strict=False,
-    )
-
 
 
 def prime_cache(args):

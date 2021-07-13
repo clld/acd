@@ -2,27 +2,57 @@ import collections
 
 from pyramid.config import Configurator
 
-from clld_glottologfamily_plugin import util
-
-from clld.interfaces import IMapMarker, IValueSet, IValue, IDomainElement
+from clld.web.icon import MapMarker
+from clld.interfaces import IMapMarker, IValueSet, IValue, IDomainElement, ILanguage, ILinkAttrs
 from clldutils.svg import pie, icon, data_url
+from clldutils import color
 
 # we must make sure custom models are known at database initialization!
 from acd import models
 from acd import datatables
 
+ICONS = collections.OrderedDict([
+    ('Form.', ''),
+    ('WMP', ''),
+    ('CMP', ''),
+    ('SHWNG', ''),
+    ('OC', ''),
+])
+for k, c in zip(ICONS.keys(), color.sequential_colors(len(ICONS))):
+    ICONS[k] = c.replace('#', 'c')
 
 
-class LanguageByFamilyMapMarker(util.LanguageByFamilyMapMarker):
+def link_attrs(req, obj, **kw):
+    if ILanguage.providedBy(obj):
+        if obj.is_proto:
+            kw['class'] = 'proto-language'
+            kw['label'] = obj.group if obj.group.startswith('P') else obj.name
+        else:
+            kw['class'] = 'language'
+
+    if IValue.providedBy(obj):
+        if obj.valueset.language.is_proto:
+            kw['class'] = 'proto-form'
+        else:
+            kw['class'] = 'form'
+
+    return kw
+
+
+class LanguageByGroupMapMarker(MapMarker):
     def __call__(self, ctx, req):
-    
-        if IValueSet.providedBy(ctx):
-            if ctx.language.family:
-                return data_url(icon(ctx.language.family.jsondata['icon']))
-            return data_url(icon(req.registry.settings.get('clld.isolates_icon', util.ISOLATES_ICON)))
-    
-        return super(LanguageByFamilyMapMarker, self).__call__(ctx, req)
+        group = None
+        if ILanguage.providedBy(ctx):
+            if ctx.group in ICONS:
+                group = ctx.group
 
+        if IValueSet.providedBy(ctx):
+            if ctx.language.group in ICONS:
+                group = ctx.language.group
+
+        if group:
+            return data_url(icon(ICONS[group]))
+        return super(LanguageByGroupMapMarker, self).__call__(ctx, req)
 
 
 def main(global_config, **settings):
@@ -30,12 +60,12 @@ def main(global_config, **settings):
     """
     config = Configurator(settings=settings)
     config.include('clld.web.app')
-
+    config.registry.registerUtility(link_attrs, ILinkAttrs)
     config.include('clld_cognacy_plugin')
     config.include('clldmpg')
     #config.register_map('cognateset', maps.CognateSetMap)
     config.register_datatable('cognatesets', datatables.Etyma)
 
-    config.registry.registerUtility(LanguageByFamilyMapMarker(), IMapMarker)
+    config.registry.registerUtility(LanguageByGroupMapMarker(), IMapMarker)
 
     return config.make_wsgi_app()

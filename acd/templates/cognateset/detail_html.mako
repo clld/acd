@@ -9,25 +9,29 @@
         <h3>Reconstructions</h3>
         <table class="table-condensed table">
             <tbody>
-                % for set in ctx.sets:
-                    <tr>
-                        <td><a href="#s-${set.id}">
-                            <span style="color: darkslategray;">${set.proto_language}</span>
-                        </a></td>
-                        <td><a href="#s-${set.id}">
-                        <span style="color: darkred; padding-right: 30px;">${set.name}</span>
-                        </a></td>
-                        <td><a href="#s-${set.id}">
-                        <span>${u.shorten(set.description)}</span>
-                        </a></td>
-                    </tr>
+                % for sets in ctx.grouped_sets():
+                    % for set in sets:
+                        <tr>
+                            <td>
+                                <a href="#s-${set.id}">
+                                ${set.proto_language}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="#s-${set.id}">
+                                <span style="color: darkred; padding-right: 30px;">${set.name}</span>
+                            </a></td>
+                            <td>
+                                <a href="#s-${set.id}">
+                                <span>${u.shorten(set.description)}</span>
+                                </a>
+                            </td>
+                        </tr>
+                    % endfor
                 % endfor
-
             </tbody>
         </table>
-        <ul class="unstyled">
-</ul>
-</div>
+    </div>
 </%def>
 
 <h2>
@@ -36,42 +40,46 @@
 </h2>
 
 % if ctx.comment:
-    <div>${u.markdown(ctx.comment)|n}</div>
+    <div>${u.markdown(req, ctx.comment)|n}</div>
 % endif
 
 % if map_ or request.map:
-${(map_ or request.map).render()}
+    ${(map_ or request.map).render()}
 % endif
 
 ## An etymon
-% if ctx.sets:
-    % for set in ctx.sets:
-        <%util:section level="4" id="s-${set.id}">
+% for sets in ctx.grouped_sets():
+    <div class="well well-small">
+        % for set in sets:
+            <%util:section level="4" id="s-${set.id}">
             <%def name="title()">
-                <span style="color: darkslategray;">${set.proto_language}</span>
-                <span style="color: darkred; padding-right: 30px;">${set.name}</span>
+                ${h.link(req, set.language)}
+                ${h.link(req, set.form)}
                 <span style="color: black; font-family: Times">${set.description}</span>
             </%def>
-            <table class="table table-condensed">
-                <tbody>
-                    % for grp, forms in set.grouped_cognates():
-                        <tr><td style="font-weight: bold; color: darkolivegreen;" colspan="3">${grp}</td></tr>
-                        % for lg, form, gloss in forms:
+                <table class="table table-condensed table-nonfluid">
+                    <tbody>
+                        % for grp, forms in set.grouped_cognates():
                             <tr>
-                                <td style="color: green">${h.link(request, lg)}</td>
-                                <td>${h.link(request, form)}</td>
-                                <td>${gloss}</td>
+                                <td style="font-weight: bold; color: darkolivegreen;" colspan="3">${grp}</td>
                             </tr>
+                            % for lg, form, gloss in forms:
+                                <tr>
+                                    <td style="color: green">${h.link(request, lg) if lg else ''}</td>
+                                    <td>${h.link(request, form)}</td>
+                                    <td>${gloss}</td>
+                                </tr>
+                            % endfor
                         % endfor
-                    % endfor
-                </tbody>
-            </table>
-                % if set.comment:
-                    <div>
-                        ${u.markdown(set.comment)|n}
-                    </div>
-                % endif
-        </%util:section>
-    % endfor
-% endif
+                    </tbody>
+                </table>
+            % if set.comment:
+                <div>
+                    ${u.markdown(req, set.comment)|n}
+                </div>
+            % endif
+            </%util:section>
+        % endfor
+    </div>
+% endfor
 

@@ -1,1 +1,11 @@
 
+a.proto-language {color: darkslategrey !important;}
+a.language {color: green !important;}
+a.proto-form {color: darkred !important;}
+a.form {color: darkblue !important;}
+span.proto-gloss {
+  color: black;
+  font-family: Times}
+a.proto-form::before {
+  content: "*";
+}

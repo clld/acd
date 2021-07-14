@@ -30,9 +30,23 @@ def link_attrs(req, obj, **kw):
         else:
             kw['class'] = 'language'
 
+    if IValueSet.providedBy(obj):
+        if obj.language.is_proto:
+            kw['class'] = 'proto-form'
+            v = obj.values[0]
+            if v.reconstruction:
+                if v.reconstruction.implicit:
+                    kw['class'] += ' implicit'
+                kw['href'] = req.route_url('cognateset', id=v.reconstruction.etymon.id, _anchor='s-{}'.format(v.reconstruction.id.split('-')[0]))
+                kw['title'] = 'Go to etymon page'
+        else:
+            kw['class'] = 'form'
+
     if IValue.providedBy(obj):
         if obj.valueset.language.is_proto:
             kw['class'] = 'proto-form'
+            if obj.reconstruction:
+                kw['href'] = req.route_url('cognateset', id=obj.reconstruction.etymon.id, _anchor='s-{}'.format(obj.reconstruction.id.split('-')[0]))
         else:
             kw['class'] = 'form'
 

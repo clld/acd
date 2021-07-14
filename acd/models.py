@@ -43,7 +43,7 @@ class Reconstruction(CustomModelMixin, Cognateset):
     proto_language = Column(Unicode)
     subset = Column(Integer)
     form_pk = Column(Integer, ForeignKey('value.pk'))
-    form = relationship(common.Value)
+    form = relationship(common.Value, backref=backref('reconstruction', uselist=False))
     language_pk = Column(Integer, ForeignKey('language.pk'))
     language = relationship(common.Language)
     implicit = Column(Boolean)
@@ -54,6 +54,12 @@ class Reconstruction(CustomModelMixin, Cognateset):
         order_by='Reconstruction.subset,Reconstruction.pk',
         foreign_keys=[etymon_pk],
         backref=backref('etymon', remote_side=[pk]))
+
+    explicit_pk = Column(Integer, ForeignKey('reconstruction.pk'))
+    implicit_sets = relationship(
+        'Reconstruction',
+        foreign_keys=[explicit_pk],
+        backref=backref('explicit', remote_side=[pk]))
 
     def grouped_sets(self):
         for ssid, sets in itertools.groupby(self.sets, lambda s: s.subset):

@@ -125,6 +125,11 @@ def main(args):
             implicit=cs['Inferred'],
         )
 
+    DBSession.flush()
+    for cs in args.cldf['protoforms.csv']:
+        if cs['Inferred']:
+            data['Reconstruction'][cs['ID']].explicit_pk = data['Reconstruction'][cs['ID'].split('-')[0]].pk
+
     for cog in args.cldf.iter_rows('CognateTable', 'id', 'formReference', 'cognatesetReference'):
         data.add(
             Cognate,

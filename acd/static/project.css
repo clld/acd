@@ -1,11 +1,40 @@
 
 a.proto-language {color: darkslategrey !important;}
 a.language {color: green !important;}
-a.proto-form {color: darkred !important;}
+.proto-form {color: darkred !important;}
 a.form {color: darkblue !important;}
 span.proto-gloss {
   color: black;
   font-family: Times}
-a.proto-form::before {
+.proto-form::before {
   content: "*";
+}
+.implicit::after {
+  content: " [i]";
+}
+table.noborder {
+  border-collapse: collapse;
+  margin: 0 auto;
+}
+.lline {
+  margin-left: 35px;
+  margin-right: -35px;
+  float: left;
+  height: 4em;
+  width: 4em;
+  border-left: 2px solid red;
+  -moz-transform: skew(-45deg);
+  -webkit-transform: skew(-45deg);
+  transform: skew(-45deg);
+}
+.rline {
+  margin-left: -5px;
+  margin-right: 5px;
+  float: left;
+  height: 4em;
+  width: 4em;
+  border-right: 2px solid red;
+  -moz-transform: skew(45deg);
+  -webkit-transform: skew(45deg);
+  transform: skew(45deg);
 }

@@ -1,7 +1,9 @@
 from sqlalchemy.orm import joinedload
 from clld.web import datatables
-from clld.web.datatables.base import LinkCol, Col, LinkToMapCol
+from clld.web.datatables.base import LinkCol, Col, LinkToMapCol, DataTable
 from clld.db.util import get_distinct_values
+from clld.db.meta import DBSession
+from clld.db.models import common
 
 from clld_cognacy_plugin.datatables import Cognatesets
 
@@ -41,5 +43,18 @@ class Etyma(Cognatesets):
         ]
 
 
+class Formsets(DataTable):
+    __constraints__ = [common.Contribution]
+
+    def base_query(self, query):
+        return DBSession.query(models.Formset).filter(models.Formset.contribution == self.contribution)
+
+    def col_defs(self):
+        return [
+            LinkCol(self, 'name'),
+        ]
+
+
 def includeme(config):
     config.register_datatable('languages', Languages)
+    config.register_datatable('formsets', Formsets)

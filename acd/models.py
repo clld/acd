@@ -21,6 +21,53 @@ from clld.db.models import common, IdNameDescriptionMixin
 from clld_cognacy_plugin.models import Cognateset
 from clld_cognacy_plugin.interfaces import ICognateset
 
+from acd.interfaces import IFormset
+
+
+def group_counterparts(iterable):
+    for grp, cogs in itertools.groupby(
+            sorted(
+            iterable,
+                key=lambda c: (
+                        c.counterpart.valueset.language.group, -(c.counterpart.valueset.language.latitude or -180))),
+            lambda c: c.counterpart.valueset.language.group,
+    ):
+        cs, l = [], None
+        for c in cogs:
+            cp = c.counterpart
+            cs.append((
+                cp.valueset.language if cp.valueset.language != l else None,
+                cp,
+                cp.valueset.parameter.name.split('[')[0],
+            ))
+            l = cp.valueset.language
+        yield grp, cs
+
+
+#
+# FIXME: what to do with Near, Noise and Loan -> IFormSet
+#
+@implementer(IFormset)
+class Formset(Base, IdNameDescriptionMixin):
+    contribution_pk = Column(Integer, ForeignKey('contribution.pk'))
+    contribution = relationship(common.Contribution, backref='formsets')
+    comment = Column(Unicode)
+    # dempwolff_reconstruction
+
+    def grouped_forms(self):
+        yield from group_counterparts(self.members)
+
+
+class Member(Base):
+    """
+    The association table between counterparts for concepts in particular languages and
+    cognate sets.
+    """
+    formset_pk = Column(Integer, ForeignKey('formset.pk'))
+    formset = relationship(Formset, backref='members')
+    counterpart_pk = Column(Integer, ForeignKey('value.pk'))
+    counterpart = relationship(common.Value, backref='memberships')
+
 
 @implementer(interfaces.ILanguage)
 class Variety(CustomModelMixin, common.Language):
@@ -28,12 +75,19 @@ class Variety(CustomModelMixin, common.Language):
     glottocode = Column(Unicode)
     group = Column(Unicode)
     is_proto = Column(Boolean)
+    parent_language = Column(Unicode)
 
 
 @implementer(interfaces.IParameter)
 class Concept(CustomModelMixin, common.Parameter):
     pk = Column(Integer, ForeignKey('parameter.pk'), primary_key=True)
     concepticon_id = Column(Unicode)
+
+
+class ReconstructionRelation(Base):
+    source_pk = Column(Integer, ForeignKey('reconstruction.pk'))
+    target_pk = Column(Integer, ForeignKey('reconstruction.pk'))
+    type = Column(Unicode)
 
 
 @implementer(ICognateset)
@@ -47,6 +101,28 @@ class Reconstruction(CustomModelMixin, Cognateset):
     language_pk = Column(Integer, ForeignKey('language.pk'))
     language = relationship(common.Language)
     implicit = Column(Boolean)
+    root = Column(Boolean)
+    #
+    # FIXME: add roots, integrate doublets and disjuncts!
+    #
+    doublet_comment = Column(Unicode)
+    disjunct_comment = Column(Unicode)
+    """
+    A distinction is further drawn between 
+    doublets 
+    (variants that are independently supported by the comparative evidence), and 
+    disjuncts 
+    (variants that are supported only by allowing the overlap of cognate sets).
+    To illustrate, both Tagalog gumí ‘beard’ and Malay kumis ‘moustache’ show regular 
+    correspondences with Fijian kumi ‘the chin or beard’, but they do not show regular 
+    correspondences with one another.  Based on this evidence it is impossible to posit doublets, 
+    since independent unambiguous evidence supporting both variants is lacking.  However, since 
+    both the Tagalog and Malay forms can be compared with Fijian it is possible to assemble two 
+    comparisons that overlap through inclusion of the Fijian form in each. The result is a pair of 
+    PMP disjuncts *gumi (based on Tagalog and Fijian) and *kumis (based on Malay and Fijian), 
+    either or both of which could be converted to an independent reconstruction if additional 
+    comparative support is found.
+    """
 
     etymon_pk = Column(Integer, ForeignKey('reconstruction.pk'))
     sets = relationship(
@@ -67,19 +143,4 @@ class Reconstruction(CustomModelMixin, Cognateset):
                 yield list(sets)
 
     def grouped_cognates(self):
-        for grp, cogs in itertools.groupby(
-            sorted(
-                self.cognates,
-                key=lambda c: (c.counterpart.valueset.language.group, -(c.counterpart.valueset.language.latitude or -180))),
-            lambda c: c.counterpart.valueset.language.group,
-        ):
-            cs, l = [], None
-            for c in cogs:
-                cp = c.counterpart
-                cs.append((
-                    cp.valueset.language if cp.valueset.language != l else None,
-                    cp,
-                    cp.valueset.parameter.name.split('[')[0],
-                ))
-                l = cp.valueset.language
-            yield grp, cs
+        yield from group_counterparts(self.cognates)

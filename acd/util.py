@@ -3,10 +3,15 @@ import textwrap
 
 from markdown import markdown as base_markdown
 from clld.db.meta import DBSession
+from clld.db.models import common
 from clld.web.util import helpers
 from clld.web.util.htmllib import HTML
 
-from acd.models import Variety
+from acd.models import Variety, Formset
+
+
+def formset_index_html(request=None, context=None, **kw):
+    return {c.id: c for c in DBSession.query(common.Contribution)}
 
 
 def markdown(req, s):

@@ -10,6 +10,7 @@ from clldutils import color
 # we must make sure custom models are known at database initialization!
 from acd import models
 from acd import datatables
+from acd.interfaces import IFormset
 
 ICONS = collections.OrderedDict([
     ('Form.', ''),
@@ -79,6 +80,7 @@ def main(global_config, **settings):
     config.include('clldmpg')
     #config.register_map('cognateset', maps.CognateSetMap)
     config.register_datatable('cognatesets', datatables.Etyma)
+    config.register_resource('formset', models.Formset, IFormset, with_index=True)
 
     config.registry.registerUtility(LanguageByGroupMapMarker(), IMapMarker)
 

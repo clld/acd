@@ -45,6 +45,15 @@ def main(args):
             contributor=common.Contributor(id=slug(HumanName(name).last), name=name)
         )
 
+    for c in args.cldf.iter_rows('ContributionTable', 'id', 'name', 'description'):
+        data.add(
+            common.Contribution,
+            c['id'],
+            id=c['id'],
+            name=c['name'],
+            description=c['description'],
+        )
+
     #
     # include (the 9) proto-languages and language groups
     #
@@ -59,6 +68,7 @@ def main(args):
             glottocode=lang['glottocode'],
             group=lang['Group'],
             is_proto=lang['name'].startswith('Proto'),
+            parent_language=lang['Dialect_Of'],
         )
 
     for rec in bibtex.Database.from_file(args.cldf.bibpath, lowercase=True):
@@ -98,15 +108,27 @@ def main(args):
         )
 
     for cs in args.cldf.iter_rows('CognatesetTable', 'id'):
-        data.add(
-            acd.models.Reconstruction,
-            cs['id'],
-            id=cs['id'],
-            name=cs['Form'],
-            description=cs['Description'],
-            proto_language=cs['Proto_Language'],
-            comment=cs['Comment'],
-        )
+        if cs['Contribution_ID'] in ['Canonical']:
+            data.add(
+                acd.models.Reconstruction,
+                cs['id'],
+                id=cs['id'],
+                name=cs['Form'],
+                description=cs['Description'],
+                proto_language=cs['Proto_Language'],
+                comment=cs['Comment'],
+                root=cs['Contribution_ID'] == 'Root',
+            )
+        else:
+            data.add(
+                acd.models.Formset,
+                cs['id'],
+                id=cs['id'],
+                name=cs['Description'] if cs['Contribution_ID'] != 'Root' else cs['Form'],
+                description=cs['Description'] if cs['Contribution_ID'] != 'Root' else None,
+                comment=cs['Comment'],
+                contribution=data['Contribution'][cs['Contribution_ID']],
+            )
 
     for cs in args.cldf['protoforms.csv']:
         form = data['Value'][cs['Form_ID']]
@@ -123,25 +145,62 @@ def main(args):
             comment=cs['Comment'],
             subset=int(cs['Subset']) if cs['Subset'] is not None else None,
             implicit=cs['Inferred'],
+            doublet_comment=cs['Doublet_Comment'],
+            disjunct_comment=cs['Disjunct_Comment'],
         )
 
     DBSession.flush()
     for cs in args.cldf['protoforms.csv']:
+        for rel in ['doublet', 'disjunct']:
+            for rid in cs[rel.capitalize() + 's']:
+                DBSession.add(models.ReconstructionRelation(
+                    source_pk=data['Reconstruction'][cs['ID']].pk,
+                    target_pk=data['Reconstruction'][rid].pk,
+                    type=rel
+                ))
         if cs['Inferred']:
             data['Reconstruction'][cs['ID']].explicit_pk = data['Reconstruction'][cs['ID'].split('-')[0]].pk
 
     for cog in args.cldf.iter_rows('CognateTable', 'id', 'formReference', 'cognatesetReference'):
+        if cog['cognatesetReference'] in data['Reconstruction']:
+            # We add cognates to the etymon as well as to the "nearest" explicit reconstruction
+            data.add(
+                Cognate,
+                cog['id'],
+                cognateset=data['Reconstruction'][cog['cognatesetReference']],
+                counterpart=data['Value'][cog['formReference']],
+            )
+            data.add(
+                Cognate,
+                cog['id'],
+                cognateset=data['Reconstruction'][cog['Reconstruction_ID']],
+                counterpart=data['Value'][cog['formReference']],
+            )
+        else:
+            assert cog['cognatesetReference'] in data['Formset']
+            data.add(
+                models.Member,
+                cog['id'],
+                formset=data['Formset'][cog['cognatesetReference']],
+                counterpart=data['Value'][cog['formReference']],
+            )
+
+    for cs in args.cldf['loansets.csv']:
         data.add(
-            Cognate,
-            cog['id'],
-            cognateset=data['Reconstruction'][cog['cognatesetReference']],
-            counterpart=data['Value'][cog['formReference']],
+            acd.models.Formset,
+            cs['ID'],
+            id=cs['ID'],
+            name=cs['Gloss'],
+            comment=cs['Comment'],
+            contribution=data['Contribution']['Loan'],
+            # FIXME: Dempwolff Etymology!
         )
+    for cs in args.cldf['BorrowingTable']:
         data.add(
-            Cognate,
-            cog['id'],
-            cognateset=data['Reconstruction'][cog['Reconstruction_ID']],
-            counterpart=data['Value'][cog['formReference']],
+            models.Member,
+            cs['ID'],
+            formset=data['Formset'][cs['Loanset_ID']],
+            counterpart=data['Value'][cs['Target_Form_ID']],
         )
 
     for (vsid, sid), pages in refs.items():

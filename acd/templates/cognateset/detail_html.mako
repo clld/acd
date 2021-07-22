@@ -40,7 +40,7 @@
 </h2>
 
 % if ctx.comment:
-    <div>${u.markdown(req, ctx.comment)|n}</div>
+    <div>${u.markdown(req, ctx.comment)[0]|n}</div>
 % endif
 
 % if map_ or request.map:
@@ -75,7 +75,7 @@
                 </table>
             % if set.comment:
                 <div>
-                    ${u.markdown(req, set.comment)|n}
+                    ${u.markdown(req, set.comment)[0]|n}
                 </div>
             % endif
             </%util:section>

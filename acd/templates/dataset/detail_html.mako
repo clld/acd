@@ -1,19 +1,13 @@
 <%inherit file="../home_comp.mako"/>
+<% intro, md =  u.markdown(req, ctx.description.replace('## Introduction', '')) %>
 
 <%def name="sidebar()">
+    <% intro, md =  u.markdown(req, ctx.description.replace('## Introduction', '')) %>
     <div class="well">
-        <h3>Sidebar</h3>
-        <p>
-            Content
-        </p>
+        ${md.toc|n}
     </div>
 </%def>
 
 <h2>The Austronesian Comparative Dictionary Online</h2>
 
-<p class="lead">
-    Abstract.
-</p>
-<p>
-    More content.
-</p>
+${intro|n}

@@ -69,6 +69,32 @@ class Member(Base):
     counterpart = relationship(common.Value, backref='memberships')
 
 
+@implementer(interfaces.IValue)
+class Form(CustomModelMixin, common.Value):
+    pk = Column(Integer, ForeignKey('value.pk'), primary_key=True)
+
+    def iter_explicit_reconstructions(self):
+        seen = set()
+        for cog in self.cognates:
+            if cog.cognateset.etymon:
+                if cog.cognateset.implicit:
+                    if cog.cognateset.explicit.id not in seen:
+                        yield cog.cognateset.explicit
+                        seen.add(cog.cognateset.explicit.id)
+                else:
+                    if cog.cognateset.id not in seen:
+                        yield cog.cognateset
+                        seen.add(cog.cognateset.id)
+
+    def grouped_formsets(self):
+        for _, memberships in itertools.groupby(
+            sorted(self.memberships, key=lambda mm: mm.formset.contribution_pk),
+            lambda mm: mm.formset.contribution_pk,
+        ):
+            formsets = [m.formset for m in memberships]
+            yield formsets[0].contribution, formsets
+
+
 @implementer(interfaces.ILanguage)
 class Variety(CustomModelMixin, common.Language):
     pk = Column(Integer, ForeignKey('language.pk'), primary_key=True)
@@ -82,6 +108,10 @@ class Variety(CustomModelMixin, common.Language):
 class Concept(CustomModelMixin, common.Parameter):
     pk = Column(Integer, ForeignKey('parameter.pk'), primary_key=True)
     concepticon_id = Column(Unicode)
+
+    @property
+    def label(self):
+        return self.name.split('[')[0].strip()
 
 
 class ReconstructionRelation(Base):

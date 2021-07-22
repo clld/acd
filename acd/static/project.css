@@ -1,11 +1,18 @@
+caption {
+  font-weight: bold;
+  caption-side: top;
+  background-color: floralwhite !important;
+}
 
-a.proto-language {color: darkslategrey !important;}
-a.language {color: green !important;}
+.proto-language {color: darkslategrey !important;}
+.language {color: green !important;}
 .proto-form {color: darkred !important;}
-a.form {color: darkblue !important;}
-span.proto-gloss {
+.form {color: darkblue !important;}
+
+.gloss, .proto-gloss {
   color: black;
-  font-family: Times}
+  font-family: "Times New Roman", Times, serif}
+
 .proto-form::before {
   content: "*";
 }

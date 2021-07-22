@@ -1,7 +1,8 @@
 import re
 import textwrap
 
-from markdown import markdown as base_markdown
+from markdown import Markdown
+from markdown.extensions.toc import TocExtension
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.web.util import helpers
@@ -15,10 +16,14 @@ def formset_index_html(request=None, context=None, **kw):
 
 
 def markdown(req, s):
-    s = base_markdown(s)
+    md = Markdown(extensions=[
+        TocExtension(permalink=True),
+        'markdown.extensions.fenced_code',
+        'markdown.extensions.tables'])
+    s = md.convert(s)
     s = re.sub(
         'languages/(?P<lid>[0-9]+)', lambda m: req.route_url('language', id=m.group('lid')), s)
-    return s
+    return s, md
 
 
 def shorten(text):

@@ -23,6 +23,7 @@ def main(args):
         id=acd.__name__,
         domain='acd.clld.org',
         name="ACD - Austronesian Comparative Dictionary",
+        description=args.cldf.directory.parent.joinpath('NOTES.md').read_text(encoding='utf8'),
         publisher_name="Max Planck Institute for Evolutionary Anthropology",
         publisher_place="Leipzig",
         publisher_url="http://www.eva.mpg.de",
@@ -76,7 +77,9 @@ def main(args):
 
     refs = collections.defaultdict(list)
 
-
+    #
+    # Add the form-meaning pairs:
+    #
     for param in args.cldf.iter_rows('ParameterTable', 'id', 'concepticonReference', 'name'):
         data.add(
             models.Concept,
@@ -100,13 +103,16 @@ def main(args):
             sid, pages = Sources.parse(ref)
             refs[(vsid, sid)].append(pages)
         data.add(
-            common.Value,
+            models.Form,
             form['id'],
             id=form['id'],
             name=form['form'],
             valueset=vs,
         )
 
+    #
+    # Add the Etyma:
+    #
     for cs in args.cldf.iter_rows('CognatesetTable', 'id'):
         if cs['Contribution_ID'] in ['Canonical']:
             data.add(
@@ -130,8 +136,11 @@ def main(args):
                 contribution=data['Contribution'][cs['Contribution_ID']],
             )
 
+    #
+    # Add the reconstructions
+    #
     for cs in args.cldf['protoforms.csv']:
-        form = data['Value'][cs['Form_ID']]
+        form = data['Form'][cs['Form_ID']]
         data.add(
             acd.models.Reconstruction,
             cs['ID'],
@@ -168,13 +177,13 @@ def main(args):
                 Cognate,
                 cog['id'],
                 cognateset=data['Reconstruction'][cog['cognatesetReference']],
-                counterpart=data['Value'][cog['formReference']],
+                counterpart=data['Form'][cog['formReference']],
             )
             data.add(
                 Cognate,
                 cog['id'],
                 cognateset=data['Reconstruction'][cog['Reconstruction_ID']],
-                counterpart=data['Value'][cog['formReference']],
+                counterpart=data['Form'][cog['formReference']],
             )
         else:
             assert cog['cognatesetReference'] in data['Formset']
@@ -182,7 +191,7 @@ def main(args):
                 models.Member,
                 cog['id'],
                 formset=data['Formset'][cog['cognatesetReference']],
-                counterpart=data['Value'][cog['formReference']],
+                counterpart=data['Form'][cog['formReference']],
             )
 
     for cs in args.cldf['loansets.csv']:
@@ -200,7 +209,7 @@ def main(args):
             models.Member,
             cs['ID'],
             formset=data['Formset'][cs['Loanset_ID']],
-            counterpart=data['Value'][cs['Target_Form_ID']],
+            counterpart=data['Form'][cs['Target_Form_ID']],
         )
 
     for (vsid, sid), pages in refs.items():

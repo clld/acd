@@ -3,13 +3,16 @@ import collections
 from pyramid.config import Configurator
 
 from clld.web.icon import MapMarker
-from clld.interfaces import IMapMarker, IValueSet, IValue, IDomainElement, ILanguage, ILinkAttrs
+from clld.interfaces import IMapMarker, IValueSet, IValue, ILanguage, ILinkAttrs, IIndex
 from clldutils.svg import pie, icon, data_url
 from clldutils import color
+from clld_cognacy_plugin.interfaces import ICognateset
 
 # we must make sure custom models are known at database initialization!
 from acd import models
 from acd import datatables
+from acd import maps
+from acd import adapters
 from acd.interfaces import IFormset
 
 ICONS = collections.OrderedDict([
@@ -81,7 +84,11 @@ def main(global_config, **settings):
     #config.register_map('cognateset', maps.CognateSetMap)
     config.register_datatable('cognatesets', datatables.Etyma)
     config.register_resource('formset', models.Formset, IFormset, with_index=True)
-
+    config.register_map('cognateset', maps.ReconstructionMap)
+    config.register_adapter(
+        adapters.GeoJsonReconstruction,
+        ICognateset,
+        name=adapters.GeoJsonReconstruction.mimetype)
     config.registry.registerUtility(LanguageByGroupMapMarker(), IMapMarker)
 
     return config.make_wsgi_app()

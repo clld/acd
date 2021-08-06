@@ -13,6 +13,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.dialects.postgresql import TSVECTOR
 
 from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
@@ -123,6 +124,7 @@ class ReconstructionRelation(Base):
 @implementer(ICognateset)
 class Reconstruction(CustomModelMixin, Cognateset):
     pk = Column(Integer, ForeignKey('cognateset.pk'), primary_key=True)
+    gloss = Column(TSVECTOR)
     comment = Column(Unicode)
     proto_language = Column(Unicode)
     subset = Column(Integer)

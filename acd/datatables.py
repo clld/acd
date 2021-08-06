@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 from clld.web import datatables
 from clld.web.datatables.base import LinkCol, Col, LinkToMapCol, DataTable
@@ -31,6 +32,22 @@ class Languages(datatables.Languages):
         ]
 
 
+class FtsCol(Col):
+    __kw__ = dict(
+        bSortable=False,
+        sTitle='Gloss',
+        sDescription='')
+
+    def format(self, item):
+        return item.description
+
+    def search(self, qs):
+        # sanitize, normalize, and & (AND) the resulting stems
+        # see also https://bitbucket.org/zzzeek/sqlalchemy/issues/3160/postgresql-to_tsquery-docs-and
+        query = func.plainto_tsquery('english', qs)
+        return self.model_col.op('@@')(query)
+
+
 class Etyma(Cognatesets):
     def base_query(self, query):
         return Cognatesets.base_query(self, query).filter(models.Reconstruction.etymon_pk == None)
@@ -39,7 +56,8 @@ class Etyma(Cognatesets):
         return [
             Col(self, 'PLg', model_col=models.Reconstruction.proto_language),
             LinkCol(self, 'name', sTitle='form'),
-            Col(self, 'description')
+            #Col(self, 'description'),
+            FtsCol(self, 'gloss', model_col=models.Reconstruction.gloss)
         ]
 
 

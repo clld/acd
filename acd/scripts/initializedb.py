@@ -5,6 +5,7 @@ from clldutils.misc import nfilter
 from clldutils.misc import slug
 from clld.cliutil import Data, bibtex2source
 from clld.db.meta import DBSession
+from clld.db import fts
 from clld.db.models import common
 from clld.lib import bibtex
 from nameparser import HumanName
@@ -16,6 +17,7 @@ from acd import models
 
 
 def main(args):
+    fts.index('fts_index', models.Reconstruction.gloss, DBSession.bind)
     data = Data()
     ds = data.add(
         common.Dataset,
@@ -121,6 +123,7 @@ def main(args):
                 id=cs['id'],
                 name=cs['Form'],
                 description=cs['Description'],
+                gloss=fts.tsvector(cs['Description']),
                 proto_language=cs['Proto_Language'],
                 comment=cs['Comment'],
                 root=cs['Contribution_ID'] == 'Root',
@@ -147,6 +150,7 @@ def main(args):
             id=cs['ID'],
             name=form.name,
             description=form.valueset.parameter.name.split('[')[0].strip(),
+            gloss=fts.tsvector(form.valueset.parameter.name.split('[')[0].strip()),
             etymon=data['Reconstruction'][cs['Cognateset_ID']],
             proto_language=cs['Proto_Language'],
             language=form.valueset.language,

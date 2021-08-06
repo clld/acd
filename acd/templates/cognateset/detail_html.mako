@@ -32,16 +32,18 @@
             </tbody>
         </table>
     </div>
+    % if ctx.comment:
+        <div class="well">
+            <h3>Note</h3>
+            ${u.markdown(req, ctx.comment)[0]|n}
+        </div>
+    % endif
 </%def>
 
 <h2>
     <span style="color: darkred; padding-right: 30px;">${ctx.name}</span>
     <span style="color: black; font-family: Times">${ctx.description}</span>
 </h2>
-
-% if ctx.comment:
-    <div>${u.markdown(req, ctx.comment)[0]|n}</div>
-% endif
 
 % if map_ or request.map:
     ${(map_ or request.map).render()}
@@ -82,4 +84,3 @@
         % endfor
     </div>
 % endfor
-

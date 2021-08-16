@@ -11,7 +11,8 @@ from clld.db.models import common
 from clld.web.util import helpers
 from clld.web.util.htmllib import HTML
 
-from acd.models import Variety, Reconstruction
+from acd.models import Variety, Reconstruction, Formset
+assert Formset
 
 
 def cognateset_index_html(request=None, context=None, **kw):

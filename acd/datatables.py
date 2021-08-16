@@ -1,7 +1,7 @@
 from sqlalchemy import func
-from sqlalchemy.orm import joinedload
 from clld.web import datatables
-from clld.web.datatables.base import LinkCol, Col, LinkToMapCol, DataTable
+from clld.web.datatables.base import LinkCol, Col, LinkToMapCol, DataTable, DetailsRowLinkCol
+from clld.web.datatables.value import Values
 from clld.db.util import get_distinct_values
 from clld.db.meta import DBSession
 from clld.db.models import common
@@ -73,6 +73,22 @@ class Formsets(DataTable):
         ]
 
 
+class Forms(Values):
+    def col_defs(self):
+        if self.language:
+            return [
+                Col(self, 'name', sTitle='Form'),
+                LinkCol(
+                    self,
+                    'Meaning',
+                    get_object=lambda i: i.valueset.parameter,
+                    model_col=common.Parameter.name),
+                DetailsRowLinkCol(self, 'd', button_text='show set', sTitle='Cognate set'),
+            ]
+        return Values.col_defs(self)
+
+
 def includeme(config):
     config.register_datatable('languages', Languages)
     config.register_datatable('formsets', Formsets)
+    config.register_datatable('values', Forms)

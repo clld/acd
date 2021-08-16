@@ -1,38 +1,27 @@
 <%inherit file="../${context.get('request').registry.settings.get('clld.app_template', 'app.mako')}"/>
 <%namespace name="util" file="../util.mako"/>
-<%! active_menu_item = "languages" %>
-<%block name="title">Genus ${ctx.name}</%block>
+<%! active_menu_item = "formsets" %>
 
-<ul class="breadcrumb">
-    <li>
-        Family: ${h.link(request, ctx.family)}
-        % if ctx.subfamily:
-        <span class="divider">/</span>
-        % endif
-    </li>
-    % if ctx.subfamily:
-    <li class="active">Subfamily: ${ctx.subfamily}</li>
-    % endif
-</ul>
-
-<h2>Genus ${ctx.name}</h2>
-
-${request.map.render()}
-
-<h3>Languages</h3>
-<div id="list-container" class="row-fluid">
-    % for languages in h.partitioned(ctx.languages):
-    <div class="span4">
-        <table class="table table-condensed table-nonfluid">
-            <tbody>
-                % for language in languages:
-                <tr>
-                    <td>${h.link_to_map(language)}</td>
-                    <td>${h.link(request, language)}</td>
-                </tr>
-                % endfor
-            </tbody>
-        </table>
+<h3>${ctx.contribution.name}: ${ctx.name}</h3>
+% if ctx.comment:
+    <div class="well well-small">
+        ${u.markdown(req, ctx.comment)[0]|n}
     </div>
-    % endfor
-</div>
+% endif
+
+<table class="table table-condensed table-nonfluid">
+    <tbody>
+        % for grp, forms in ctx.grouped_forms():
+            <tr>
+                <td style="font-weight: bold; color: darkolivegreen;" colspan="3">${grp}</td>
+            </tr>
+            % for lg, form, gloss in forms:
+                <tr>
+                    <td style="color: green">${h.link(request, lg) if lg else ''}</td>
+                    <td>${h.link(request, form)}</td>
+                    <td>${gloss}</td>
+                </tr>
+            % endfor
+        % endfor
+    </tbody>
+</table>

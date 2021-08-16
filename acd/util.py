@@ -1,6 +1,9 @@
 import re
+import math
 import textwrap
+import collections
 
+from unidecode import unidecode
 from markdown import Markdown
 from markdown.extensions.toc import TocExtension
 from clld.db.meta import DBSession
@@ -8,7 +11,18 @@ from clld.db.models import common
 from clld.web.util import helpers
 from clld.web.util.htmllib import HTML
 
-from acd.models import Variety, Formset
+from acd.models import Variety, Reconstruction
+
+
+def cognateset_index_html(request=None, context=None, **kw):
+    initials = collections.Counter([
+        cs.name[1]
+        for cs in DBSession.query(Reconstruction).filter(Reconstruction.etymon_pk == None)
+    ])
+    initials = [
+        (c, v, math.ceil(v / 10))
+        for c, v in sorted(initials.items(), key=lambda i: unidecode(i[0]).lower())]
+    return dict(initials=initials)
 
 
 def formset_index_html(request=None, context=None, **kw):

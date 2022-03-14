@@ -30,14 +30,26 @@ def formset_index_html(request=None, context=None, **kw):
 
 
 def markdown(req, s):
+    """
+    [Kanakanabu](languages/680) _-au_ ‘imperative suffix’,[Niue](languages/362)
+    [Wolff (1973:90)](bib-wolff1973)
+    """
+    from clldutils.markup import MarkdownLink
+
+    def repl(ml):
+        if ml.url.startswith('languages/'):
+            ml.url = req.route_url('language', id=ml.url.split('/')[1])
+            return ' {}'.format(ml)
+        if ml.url.startswith('bib-'):
+            ml.url = req.route_url('source', id=ml.url.split('-')[1])
+            return ' {}'.format(ml)
+        return ml
+
     md = Markdown(extensions=[
         TocExtension(permalink=True),
         'markdown.extensions.fenced_code',
         'markdown.extensions.tables'])
-    s = md.convert(s)
-    s = re.sub(
-        'languages/(?P<lid>[0-9]+)', lambda m: req.route_url('language', id=m.group('lid')), s)
-    return s, md
+    return md.convert(MarkdownLink.replace(s, repl)), md
 
 
 def shorten(text):

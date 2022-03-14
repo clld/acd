@@ -16,10 +16,9 @@ assert Formset
 
 
 def cognateset_index_html(request=None, context=None, **kw):
-    initials = collections.Counter([
-        cs.name[1]
-        for cs in DBSession.query(Reconstruction).filter(Reconstruction.etymon_pk == None)
-    ])
+    initials = collections.Counter()
+    for cs in DBSession.query(Reconstruction).filter(Reconstruction.etymon_pk == None):
+        initials.update(cs.form_initials)
     initials = [
         (c, v, math.ceil(v / 10))
         for c, v in sorted(initials.items(), key=lambda i: unidecode(i[0]).lower())]

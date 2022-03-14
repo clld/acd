@@ -1,5 +1,7 @@
 import collections
+import unicodedata
 
+from unidecode import unidecode
 from pycldf import Sources
 from clldutils.misc import nfilter
 from clldutils.misc import slug
@@ -14,6 +16,17 @@ from clld_cognacy_plugin.models import Cognate
 
 import acd
 from acd import models
+
+
+def initials(s):
+    for i, c in enumerate(unidecode(s)):
+        if unicodedata.category(c).startswith('L'):
+            return c
+        if c == '(':
+            alternatives = s[i + 1:].split(')')[0]
+            if ',' in alternatives:
+                return ''.join(set(initials(ss) for ss in alternatives.split(',')))
+            return alternatives
 
 
 def main(args):
@@ -57,6 +70,9 @@ def main(args):
             description=c['description'],
         )
 
+    for rec in bibtex.Database.from_file(args.cldf.bibpath, lowercase=True):
+        data.add(common.Source, rec.id, _obj=bibtex2source(rec))
+
     #
     # include (the 9) proto-languages and language groups
     #
@@ -73,9 +89,12 @@ def main(args):
             is_proto=lang['name'].startswith('Proto'),
             parent_language=lang['Dialect_Of'],
         )
-
-    for rec in bibtex.Database.from_file(args.cldf.bibpath, lowercase=True):
-        data.add(common.Source, rec.id, _obj=bibtex2source(rec))
+    DBSession.flush()
+    for lang in args.cldf.iter_rows('LanguageTable', 'id', 'source'):
+        for sid in lang['source']:
+            DBSession.add(common.LanguageSource(
+                language_pk=data['Variety'][lang['id']].pk,
+                source_pk=data['Source'][sid].pk))
 
     refs = collections.defaultdict(list)
 
@@ -122,6 +141,7 @@ def main(args):
                 cs['id'],
                 id=cs['id'],
                 name=cs['Form'],
+                form_initials=initials(cs['Form']),
                 description=cs['Description'],
                 gloss=fts.tsvector(cs['Description']),
                 proto_language=cs['Proto_Language'],

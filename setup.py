@@ -19,6 +19,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
+        'unidecode',
         'clld>=8',  # >=7.0
         'clldmpg>=4.2',
         'clld-cognacy-plugin',

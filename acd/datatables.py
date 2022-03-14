@@ -56,6 +56,7 @@ class Etyma(Cognatesets):
         return [
             Col(self, 'PLg', model_col=models.Reconstruction.proto_language),
             LinkCol(self, 'name', sTitle='form'),
+            Col(self, 'initial', input_size='mini', model_col=models.Reconstruction.form_initials),
             #Col(self, 'description'),
             FtsCol(self, 'gloss', model_col=models.Reconstruction.gloss)
         ]

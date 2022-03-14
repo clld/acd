@@ -127,6 +127,7 @@ class Reconstruction(CustomModelMixin, Cognateset):
     gloss = Column(TSVECTOR)
     comment = Column(Unicode)
     proto_language = Column(Unicode)
+    form_initials = Column(Unicode)  # The first letter(s) of the reconstructed form
     subset = Column(Integer)
     form_pk = Column(Integer, ForeignKey('value.pk'))
     form = relationship(common.Value, backref=backref('reconstruction', uselist=False))

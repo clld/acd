@@ -30,7 +30,7 @@
 <tr>
     % for c, v, _ in initials:
         <th>
-            <a href="${req.route_url('cognatesets', _query=dict(sSearch_1='^*' + c))}" title="${v} sets">
+            <a href="${req.route_url('cognatesets', _query=dict(sSearch_2=c))}" title="${v} sets">
                 ${c}
             </a>
         </th>

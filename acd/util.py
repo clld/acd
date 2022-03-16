@@ -1,4 +1,3 @@
-import re
 import math
 import textwrap
 import collections
@@ -10,6 +9,7 @@ from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.web.util import helpers
 from clld.web.util.htmllib import HTML
+from cldfviz.text import CLDFMarkdownLink
 
 from acd.models import Variety, Reconstruction, Formset
 assert Formset
@@ -30,26 +30,23 @@ def formset_index_html(request=None, context=None, **kw):
 
 
 def markdown(req, s):
-    """
-    [Kanakanabu](languages/680) _-au_ ‘imperative suffix’,[Niue](languages/362)
-    [Wolff (1973:90)](bib-wolff1973)
-    """
-    from clldutils.markup import MarkdownLink
-
     def repl(ml):
-        if ml.url.startswith('languages/'):
-            ml.url = req.route_url('language', id=ml.url.split('/')[1])
-            return ' {}'.format(ml)
-        if ml.url.startswith('bib-'):
-            ml.url = req.route_url('source', id=ml.url.split('-')[1])
-            return ' {}'.format(ml)
+        comp_to_route = {
+            'LanguageTable': 'language',
+            'Source': 'source',
+        }
+        if ml.is_cldf_link:
+            try:
+                ml.url = req.route_url(comp_to_route[ml.component()], id=ml.objid)
+            except:
+                print(ml.component(), ml)
         return ml
 
     md = Markdown(extensions=[
         TocExtension(permalink=True),
         'markdown.extensions.fenced_code',
         'markdown.extensions.tables'])
-    return md.convert(MarkdownLink.replace(s, repl)), md
+    return md.convert(CLDFMarkdownLink.replace(s, repl)), md
 
 
 def shorten(text):

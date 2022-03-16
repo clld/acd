@@ -21,7 +21,7 @@ from acd import models
 def initials(s):
     for i, c in enumerate(unidecode(s)):
         if unicodedata.category(c).startswith('L'):
-            return c
+            return 'l' if c == 'L' else c
         if c == '(':
             alternatives = s[i + 1:].split(')')[0]
             if ',' in alternatives:

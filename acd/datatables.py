@@ -2,7 +2,7 @@ from sqlalchemy import func
 from clld.web import datatables
 from clld.web.datatables.base import LinkCol, Col, LinkToMapCol, DataTable, DetailsRowLinkCol
 from clld.web.datatables.value import Values
-from clld.db.util import get_distinct_values
+from clld.db.util import get_distinct_values, contains
 from clld.db.meta import DBSession
 from clld.db.models import common
 
@@ -48,6 +48,14 @@ class FtsCol(Col):
         return self.model_col.op('@@')(query)
 
 
+class FormCol(LinkCol):
+    __kw__ = dict(sDescription='You may type <emph>ny</emph> for <emph>ñ</emph> and '
+                               '<emph>ng</emph> for <emph>ŋ</emph>.')
+
+    def search(self, qs):
+        return contains(self.model_col, qs.replace('ny', 'ñ').replace('ng', 'ŋ'))
+
+
 class Etyma(Cognatesets):
     def base_query(self, query):
         return Cognatesets.base_query(self, query).filter(models.Reconstruction.etymon_pk == None)
@@ -55,7 +63,7 @@ class Etyma(Cognatesets):
     def col_defs(self):
         return [
             Col(self, 'PLg', model_col=models.Reconstruction.proto_language),
-            LinkCol(self, 'name', sTitle='form'),
+            FormCol(self, 'name', sTitle='form'),
             Col(self, 'initial', input_size='mini', model_col=models.Reconstruction.form_initials),
             #Col(self, 'description'),
             FtsCol(self, 'gloss', model_col=models.Reconstruction.gloss)

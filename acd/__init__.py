@@ -1,8 +1,10 @@
+import functools
 import collections
 
 from pyramid.config import Configurator
 
 from clld.web.icon import MapMarker
+from clld.web.app import menu_item
 from clld.interfaces import IMapMarker, IValueSet, IValue, ILanguage, ILinkAttrs, IIndex
 from clldutils.svg import pie, icon, data_url
 from clldutils import color
@@ -82,6 +84,19 @@ def main(global_config, **settings):
     config.include('clld_cognacy_plugin')
     config.include('clldmpg')
     #config.register_map('cognateset', maps.CognateSetMap)
+
+    config.register_menu(
+        ('dataset', functools.partial(menu_item, 'dataset', label='Home')),
+        ('cognatesets', functools.partial(menu_item, 'cognatesets', label='Cognatesets')),
+        #Roots Loans Near Noise
+        ('roots', lambda ctx, req: (req.route_url('contribution', id='Root'), 'Roots')),
+        ('loans', lambda ctx, req: (req.route_url('contribution', id='Loan'), 'Loans')),
+        ('near', lambda ctx, req: (req.route_url('contribution', id='Near'), 'Near Cognates')),
+        ('noise', lambda ctx, req: (req.route_url('contribution', id='Noise'), 'Chance Resemblances')),
+        ('languages', functools.partial(menu_item, 'languages', label='Languages')),
+        ('sources', functools.partial(menu_item, 'sources', label='Sources')),
+    )
+
     config.register_datatable('cognatesets', datatables.Etyma)
     config.register_resource('formset', models.Formset, IFormset, with_index=True)
     config.register_map('cognateset', maps.ReconstructionMap)

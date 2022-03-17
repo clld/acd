@@ -10,8 +10,8 @@
     <ul class="nav nav-tabs">
         <li class="active"><a href="#roots" data-toggle="tab">Roots</a></li>
         <li><a href="#loans" data-toggle="tab">Loans</a></li>
-        <li><a href="#near" data-toggle="tab">Near</a></li>
-        <li><a href="#noise" data-toggle="tab">Noise</a></li>
+        <li><a href="#near" data-toggle="tab">Near Cognates</a></li>
+        <li><a href="#noise" data-toggle="tab">Chance Resemblances</a></li>
     </ul>
     <div class="tab-content" style="overflow: visible;">
         <div id="roots" class="tab-pane active">

@@ -24,13 +24,33 @@ from clld_cognacy_plugin.interfaces import ICognateset
 
 from acd.interfaces import IFormset
 
+GROUPS = [
+    'PAN',
+    'PSF',
+    'Form.',
+    'PMP',
+    'PWMP',
+    'WMP',
+    'PPh',
+    'PCEMP',
+    'PMJ',
+    'PCMP',
+    'CMP',
+    'PEMP',
+    'PSHWNG',
+    'SHWNG',
+    'POC',
+    'OC',
+]
+
 
 def group_counterparts(iterable):
     for grp, cogs in itertools.groupby(
             sorted(
             iterable,
                 key=lambda c: (
-                        c.counterpart.valueset.language.group, -(c.counterpart.valueset.language.latitude or -180))),
+                        GROUPS.index(c.counterpart.valueset.language.group),
+                        -(c.counterpart.valueset.language.latitude or -180))),
             lambda c: c.counterpart.valueset.language.group,
     ):
         cs, l = [], None

@@ -178,6 +178,10 @@ def main(args):
             comment=cs['Comment'],
             subset=int(cs['Subset']) if cs['Subset'] is not None else None,
             implicit=cs['Inferred'],
+            #
+            # FIXME: implement doublets and disjuncts as proper relations!
+            # doublets and disjuncts must be in the same proto_language!
+            #
             doublet_comment=cs['Doublet_Comment'],
             disjunct_comment=cs['Disjunct_Comment'],
         )
@@ -249,3 +253,6 @@ def prime_cache(args):
     This procedure should be separate from the db initialization, because
     it will have to be run periodically whenever data has been updated.
     """
+    #
+    # determine "Formosan only" reconstructions
+    #

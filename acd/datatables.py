@@ -57,12 +57,16 @@ class FormCol(LinkCol):
 
 
 class Etyma(Cognatesets):
+    # Note: registered in main function!
     def base_query(self, query):
         return Cognatesets.base_query(self, query).filter(models.Reconstruction.etymon_pk == None)
 
     def col_defs(self):
         return [
-            Col(self, 'PLg', model_col=models.Reconstruction.proto_language),
+            Col(self,
+                'PLg',
+                model_col=models.Reconstruction.proto_language,
+                choices=get_distinct_values(models.Reconstruction.proto_language)),
             FormCol(self, 'name', sTitle='form'),
             Col(self, 'initial', input_size='mini', model_col=models.Reconstruction.form_initials),
             #Col(self, 'description'),

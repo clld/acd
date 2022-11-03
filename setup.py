@@ -21,7 +21,7 @@ setup(
     install_requires=[
         'unidecode',
         'clldutils>=3.11.1',
-        'clld>=9.2.1',
+        'clld>=9.2.2',
         'cldfviz',
         'clldmpg>=4.2',
         'clld-cognacy-plugin',

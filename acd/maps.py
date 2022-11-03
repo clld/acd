@@ -6,5 +6,4 @@ class ReconstructionMap(CognatesetMap):
         res = CognatesetMap.get_default_options(self)
         res['show_labels'] = False
         res['max_zoom'] = 10
-        res['base_layer'] = 'Esri.WorldPhysical'
         return res

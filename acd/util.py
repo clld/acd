@@ -9,7 +9,7 @@ from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.web.util import helpers
 from clld.web.util.htmllib import HTML
-from cldfviz.text import CLDFMarkdownLink
+from pycldf.ext.markdown import CLDFMarkdownLink
 
 from acd.models import Variety, Reconstruction, Formset
 assert Formset

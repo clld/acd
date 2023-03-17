@@ -38,11 +38,12 @@ def main(args):
         id=acd.__name__,
         domain='acd.clld.org',
         name="ACD - Austronesian Comparative Dictionary",
-        description=args.cldf.directory.parent.joinpath('NOTES.md').read_text(encoding='utf8'),
+        description=args.cldf.directory.parent.joinpath('ABOUT.md').read_text(encoding='utf8'),
         publisher_name="Max Planck Institute for Evolutionary Anthropology",
         publisher_place="Leipzig",
         publisher_url="http://www.eva.mpg.de",
         license="http://creativecommons.org/licenses/by/4.0/",
+        contact='alex@austronesianist.com',
         jsondata={
             'license_icon': 'cc-by.png',
             'license_name': 'Creative Commons Attribution 4.0 International License'},
@@ -54,7 +55,7 @@ def main(args):
         name=args.cldf.properties.get('dc:title'),
         description=args.cldf.properties.get('dc:bibliographicCitation'),
     )
-    for i, name in enumerate(['Robert Blust', 'Stephen Trussel']):
+    for i, name in enumerate(['Robert Blust', 'Stephen Trussel', 'Alexander D. Smith', 'Robert Forkel']):
         common.Editor(
             dataset=ds,
             ord=i,

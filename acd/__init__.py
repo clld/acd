@@ -2,13 +2,17 @@ import functools
 import collections
 
 from pyramid.config import Configurator
+from sqlalchemy.orm import joinedload
 
 from clld.web.icon import MapMarker
 from clld.web.app import menu_item
-from clld.interfaces import IMapMarker, IValueSet, IValue, ILanguage, ILinkAttrs, IIndex
+from clld.interfaces import IMapMarker, IValueSet, IValue, ILanguage, ILinkAttrs, IIndex, ICtxFactoryQuery
+from clld.web.app import CtxFactoryQuery
+from clld.db.models.common import Value, ValueSet, Contribution
 from clldutils.svg import pie, icon, data_url
 from clldutils import color
 from clld_cognacy_plugin.interfaces import ICognateset
+from clld_cognacy_plugin.models import Cognateset, Cognate
 
 # we must make sure custom models are known at database initialization!
 from acd import models
@@ -26,6 +30,19 @@ ICONS = collections.OrderedDict([
 ])
 for k, c in zip(ICONS.keys(), color.sequential_colors(len(ICONS))):
     ICONS[k] = c.replace('#', 'c')
+
+
+class CtxFactory(CtxFactoryQuery):
+    def refined_query(self, query, model, req):
+        if model == Cognateset:
+            query = query.options(
+                joinedload(models.Reconstruction.sets).joinedload(models.Reconstruction.language),
+                joinedload(models.Reconstruction.sets).joinedload(Cognateset.cognates).joinedload(Cognate.counterpart).joinedload(Value.valueset).joinedload(ValueSet.language),
+                joinedload(models.Reconstruction.sets).joinedload(Cognateset.cognates).joinedload(Cognate.counterpart).joinedload(Value.valueset).joinedload(ValueSet.parameter),
+            )
+        if model == Contribution:
+            query = query.options()
+        return query
 
 
 def link_attrs(req, obj, **kw):
@@ -105,5 +122,6 @@ def main(global_config, **settings):
         ICognateset,
         name=adapters.GeoJsonReconstruction.mimetype)
     config.registry.registerUtility(LanguageByGroupMapMarker(), IMapMarker)
+    config.registry.registerUtility(CtxFactory(), ICtxFactoryQuery)
 
     return config.make_wsgi_app()

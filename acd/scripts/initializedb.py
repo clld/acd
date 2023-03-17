@@ -37,7 +37,7 @@ def main(args):
         acd.__name__,
         id=acd.__name__,
         domain='acd.clld.org',
-        name="ACD - Austronesian Comparative Dictionary",
+        name="ACD - Austronesian Comparative Dictionary Online",
         description=args.cldf.directory.parent.joinpath('ABOUT.md').read_text(encoding='utf8'),
         publisher_name="Max Planck Institute for Evolutionary Anthropology",
         publisher_place="Leipzig",

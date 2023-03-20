@@ -56,6 +56,11 @@ class FormCol(LinkCol):
         return contains(self.model_col, qs.replace('ny', 'ñ').replace('ng', 'ŋ'))
 
 
+class InitialCol(Col):
+    def search(self, qs):
+        return self.model_col == qs
+
+
 class Etyma(Cognatesets):
     # Note: registered in main function!
     def base_query(self, query):
@@ -68,7 +73,8 @@ class Etyma(Cognatesets):
                 model_col=models.Reconstruction.proto_language,
                 choices=get_distinct_values(models.Reconstruction.proto_language)),
             FormCol(self, 'name', sTitle='form'),
-            Col(self, 'initial', input_size='mini', model_col=models.Reconstruction.form_initials),
+            InitialCol(
+                self, 'initial', input_size='mini', model_col=models.Reconstruction.form_initials),
             #Col(self, 'description'),
             FtsCol(self, 'gloss', model_col=models.Reconstruction.gloss)
         ]

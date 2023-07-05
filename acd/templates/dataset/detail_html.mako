@@ -12,7 +12,7 @@
     </p>
     <p>The version currently served by this website (v1.2) should be cited as</p>
     <blockquote>
-        Robert Bust, Stephen Trussel, & Alexander D. Smith. (2023). CLDF dataset derived from Blust's "Austronesian Comparative Dictionary" (v1.2) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.7741197
+        Robert Blust, Stephen Trussel, & Alexander D. Smith. (2023). CLDF dataset derived from Blust's "Austronesian Comparative Dictionary" (v1.2) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.7741197
     </blockquote>
 </div>
 </%def>

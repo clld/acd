@@ -23,7 +23,7 @@ setup(
         'clldutils>=3.11.1',
         'clld>=10',
         'clldmpg>=4.2',
-        'clld-cognacy-plugin',
+        'clld-cognacy-plugin<1',
         'clld-glottologfamily-plugin>=4.0',
         'pyglottolog',
 ],

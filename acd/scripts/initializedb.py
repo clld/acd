@@ -47,8 +47,8 @@ def main(args):
         description=args.cldf.directory.parent.joinpath('ABOUT.md').read_text(encoding='utf8'),
         publisher_name="Max Planck Institute for Evolutionary Anthropology",
         publisher_place="Leipzig",
-        publisher_url="http://www.eva.mpg.de",
-        license="http://creativecommons.org/licenses/by/4.0/",
+        publisher_url="https://www.eva.mpg.de",
+        license="https://creativecommons.org/licenses/by/4.0/",
         contact='alex@austronesianist.com',
         jsondata={
             'license_icon': 'cc-by.png',
@@ -67,6 +67,26 @@ def main(args):
             ord=i,
             contributor=common.Contributor(id=slug(HumanName(name).last), name=name)
         )
+
+    #  4. "Category"
+    #
+	#Type of data:          Text
+	#Contains null values:  False
+	#Non-null values:       2364
+	#Unique values:         5
+	#Longest value:         5 characters
+	#Most common values:    loan (998x)
+	#                       noise (730x)
+	#                       root (302x)
+	#                       near (184x)
+	#                       also (150x)
+    # must read description from cf.csv->dc:description. Split into chunks.
+    {
+        'near': ["'Near cognates'"],
+        'noise': ["The 'noise'", "Thus, the search"],
+        'root': ['Because many', 'Roots'],
+        'loans': ['Loanwords', 'A fairly', 'The issue'],
+    }
 
     for c in args.cldf.iter_rows('ContributionTable', 'id', 'name', 'description'):
         data.add(

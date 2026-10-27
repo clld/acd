@@ -23,9 +23,10 @@ setup(
         'clldutils>=3.11.1',
         'clld>=10',
         'clldmpg>=4.2',
-        'clld-cognacy-plugin<1',
+        'clld-cognacy-plugin>=1',
         'clld-glottologfamily-plugin>=4.0',
         'pyglottolog',
+        'psycopg2',
 ],
 extras_require={
         'dev': ['flake8', 'waitress'],
